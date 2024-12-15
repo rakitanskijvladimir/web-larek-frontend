@@ -1,68 +1,61 @@
-
-
-// Интерфейс модели данных
-interface IProduct { // описание объекта продукт, выводим для отображения на экране
-	id: string;
-	description: string;
-	image: string;
-	title: string;
-	category: string;
-	price: number;
+// Интерфейс ответа от сервера (карточки)
+interface IGetProductResponse { // получаю ответ от сервера
+	total: number;              
+    items: IProduct[];          
 }
 
-interface IGetProductResponse { // ответ от сервера
-	total: number;   // итого сколько пришло товаров
-    items: IProduct[]; // массив товаров
+// Интерфейс карточки 
+interface IProduct {  // описание объекта продукт, выводим для отображения на экране
+	id: string;           
+	description: string;  
+	image: string;        
+	title: string;        
+	category: string;     
+	price: number;        
 }
 
+// Интерфейс корзина (модальное окно)
+interface IProductBasket { // объект продукта в корзине выбранный пользователем
+    id: string;     
+    title: string;  
+    price: number;  
+}
+
+// Интерфейс формы отправки (модальное окно)
 interface IOrderBody { // параметры запроса postOrder для передачи в body
-    payment: "online" | "offline",
-    email: string,
-    phone: string,
-    address: string,
-    total: number,
-    items: string[]; 
+    payment?: boolean,      
+    email?: string,         
+    phone?: string,        
+    address?: string,       
+    total?: number,        
+    items: string[];       
 }
 
-interface IPostOrderRequest { // ответ от сервера на запрос postOrder
-    id: string,
-    total: number
+// Интерфейс для модели данных карточек
+interface IProductData { // данные выбранной карточки
+    cards: IProduct[];  
+    preview: string | null  
+    addCard(card: IProduct): void;
+    deleteCard(cardId: string, payment: Function | null): void;
+    // getCard(cardId: string): IProduct;
+}
+
+// Интерфейс для корзины (модальное окно)
+interface IProductBasketData {
+    getProductList(): TProductBasketList;
+}
+
+// Интерфейс для формы отправки (модальное окно) 
+interface IOrderBodyData {
+    onSubmit(cardId:string): void;
+    checkValidation(data: Record<keyof TGetProductData, string>): boolean;
 }
 
 
-// Интерфейс API-клиента
-interface IApiClient { // интерфэйс API клиента
-    getProductList(): Promise<IProduct[]>
-    getProductItem(id: string): Promise<IProduct>
-    postOrder(order: IOrderBody): Promise<IPostOrderRequest>
-}
+type TGetProductData = Pick<IGetProductResponse, 'total' | 'items'> 
 
+type TProductItems = Pick<IProduct, 'id' | 'description' | 'image' | 'title' | 'category' | 'price'> 
 
+type TProductBasketList = Pick<IProductBasket, 'id' | 'title' | 'price'> 
 
-// Интерфейс базовых классов
-    interface IViewCompinent { // интерфэйс абстрактного класса
-        render(): HTMLElement;
-        update?(): void;
-        mount(parent: HTMLElement): void;
-        unmount(element: HTMLElement): void;
-    }
-
-
-// Интерфейс отображения
-interface IProductView { // интер для отображение элемента на главной странице
-    id: string
-	description: string;
-	image: string;
-	title: string;
-	category: string;
-	price: number;
-}
-
-interface IProductModal extends IProductView { // наследуею от IProductView и добавляю метод
-    onSubmit(id:string): void;
-}
-
-type TProductBasket = Pick<IProductView, 'price' | 'title' | 'id'> // оставляю из IProductView нужные поля
-
-
-
+type TOrderBodyForm = Pick<IOrderBody, 'payment' | 'email' | 'phone' | 'address' | 'total' | 'items'> 
