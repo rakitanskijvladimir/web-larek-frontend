@@ -109,7 +109,9 @@ export type TOrderFirstForm = Pick<IOrderRequest, 'payment' | 'address'>;
 
 ```
 export type TOrderSecondForm = Pick<IOrderRequest, 'email' | 'phone'>;
+
 ```
+
 
 ## Архитертура приложения
 
@@ -230,7 +232,7 @@ export type TOrderSecondForm = Pick<IOrderRequest, 'email' | 'phone'>;
 - addEmail(email: string) - добавляет значение поля электронной почты
 - addPhone(phone: string) - добавляет значение поля телефона
 
-### Класс checkForm:
+#### Класс checkForm:
 Отображает корректную реализация заполненных инпутов.
 
 Методы:
@@ -264,12 +266,3 @@ export type TOrderSecondForm = Pick<IOrderRequest, 'email' | 'phone'>;
 `address:input` - изменение данных адреса в форме отправки заказа\
 `email:input` - изменение данных электронной почты в форме отправки заказа\
 `phone:input` - изменение данных телефона в форме отправки заказа\
-
-
-
-
-
-
-
-
-
