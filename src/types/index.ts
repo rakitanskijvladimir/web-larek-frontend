@@ -1,3 +1,12 @@
+// Интерфейс запроса данных
+export interface IDataProduct {
+	catalog: IProduct[];
+	preview: string;
+	basket: IProductBasket[];
+	order: IOrderRequest;
+	total: string | number;
+	loading: boolean;
+  }
 
 // Интерфейс карточки 
 export interface IProduct {  
@@ -24,6 +33,7 @@ export interface IOrderRequest {
 	items: string[];
 	total: number;      
 }
+
 // Интерфейс завершенного результата
 export interface IOrderResult {
 	id: string;

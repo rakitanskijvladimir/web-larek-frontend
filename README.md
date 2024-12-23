@@ -43,10 +43,22 @@ yarn build
 
 # Данные и типы данных используемые в приложении
 
-Интерфейс со свойствами карточки
-
 ```
-export interface IProduct {  
+// Интерфейс запроса данных
+
+interface IDataProduct {
+	catalog: IProduct[];
+	preview: string;
+	basket: IProductBasket[];
+	order: IOrderRequest;
+	total: string | number;
+	loading: boolean;
+  }
+  ```
+```
+// Интерфейс карточки
+
+interface IProduct {  
 	id: string;           
 	description: string;  
 	image: string;        
@@ -55,20 +67,18 @@ export interface IProduct {
 	price: number | null;        
 }
 ```
-
-Интерфейс корзины с содержимым и ценой на товар
-
 ```
-export interface IProductBasket { 
+// Интерфейс корзины
+
+interface IProductBasket { 
     items: string[];
 	total: number;  
 }
 ```
-
-Интерфейс оформления заказа 
-
 ```
-export interface IOrderRequest { 
+// Интерфейс формы отправки
+
+interface IOrderRequest { 
     payment: PayForm;
 	email: string;
 	phone: string;
@@ -77,132 +87,163 @@ export interface IOrderRequest {
 	total: number;      
 }
 ```
-
-Интерфейс завершенного результата для отправки
-
 ```
-export interface IOrderResult {
+// Интерфейс завершенного результата
+
+interface IOrderResult {
 	id: string;
 	total: number;
 }
 ```
-
-Тип способа оплаты 
-
 ```
-export type PayForm = 'cash' | 'card';
-```
+type PayForm = 'cash' | 'card';
 
-Тип заказа для отправки на сервер
+type TOrderRequest = Omit<IOrderRequest, 'items' | 'total'>
 
-```
-export type TOrderRequest = Omit<IOrderRequest, 'items' | 'total'>
+type TOrderFirstForm = Pick<IOrderRequest, 'payment' | 'address'>;
+
+type TOrderSecondForm = Pick<IOrderRequest, 'email' | 'phone'>;
 ```
 
-Тип формы оплаты и контактов
-
-```
-export type TOrderFirstForm = Pick<IOrderRequest, 'payment' | 'address'>;
-```
-
-Тип формы контактов
-
-```
-export type TOrderSecondForm = Pick<IOrderRequest, 'email' | 'phone'>;
-
-```
 
 
 ## Архитертура приложения
 
 Код приложения разделен на слои которые отвечают парадигме MVP:\
--слой представления отвечает на отображение данных на странице\
--слой даннных, отвечает на хранение и изменение данных\
--слой презентер отвечает за связь представления и данные
+-слой Product - отвечает за работу и хранение данных полученных с сервера и от пользователя\
+-слой View - отвечает за отображение данных для работы с пользователем и работу с событиями\
+-слой Presenter - отвечает за связь данных с отображением интерфейсов при срабатывании события.
 
-### Базовый код
+### Базовые классы
 
-### Слой данных 
-#### Класс IProduct 
-Класс отвечает за хранение и логику работы с данными карточек полученных с сервера на основной странице сайта. Конструктор класса принимает брокер событий\
-В полях класса хранятся следующие данные:
-- id: string - содержит индивидуальный номер каждой карточки
-- description: string - содержит описание товара
-- image: string - содержит картинку товара
-- title: string - содержит название(заголовок) карточки
-- category: string - содержит категорию товара
-- price: number - содержит цену товара
-
-#### Класс IProductBasket
-Класс отвечает за хранение и логику работы с данными товара в корзине.\
-В полях класса хранятся следующие данные:
-- items: string[] - массив карточек товара
-- total: number - итоговая сумма заказа
+#### Класс Api
+Базовый класс для отправки и получения запросов\
+constructor(baseUrl: string) - принимает url сервера, по которому происходят запросы\
+Поля класса:
+- _baseUrl - базовый адрес полученный с сервера.\
 
 Методы:
-- addCard(itemId): void - добавляет товар в корзину
-- deleteCard(itemId): void - удаляет товар из корзины
+- handleResponse(response: Response) - принимает ответ от сервера и обрабатывает его или отклоняет промис с возникшей ошибкой
+- get(url: string ) - возвращает ответ от сервера
+- post(url: string ) - принимает данные в виде объекта для отправки на сервер
 
-#### Класс IOrderRequest
+#### Класс EventEmitter
+Брокер событий, позволяющий отправлять события и подписываться на них. Класс используется для связи слоя Product и View.\
+constructor() - инициализирует брокер событий\
+Поля класса:
+- _events - события
+
+Методы:
+- on(eventName: EventName): void - подписывает на событие с заданным именем.
+- off(eventName: EventName): - отписывается от события.
+- emit(eventName: string): - инициирует событие с данными.
+
+### Слой Product (Компоненты данных)
+
+#### Класс ApiProduct 
+Класс отвечает за данные карточек полученные с сервера на основной странице сайта. 
+constructor(baseUrl: string) - принимает, передает и сохраняет входящий url запроса\
+Поля класса:
+- items: string[] - массив карточек товара
+
+Методы:
+- getListProduct - получаем массив объектов(карточек) с сервера.
+
+#### Класс DataProduct 
+Класс отвечает за все основные группы данных страницы и методы работы с ними.\
+constructor(events: IEvents) - принимает при создании брокер событий, работает со всеми данными на странице\
+Поля класса:
+- _catalog — данные списка товаров пришедших с сервера
+- _preview — данные товара открытого в превью
+- _basket — данные товаров для добавления в корзину
+- _order — данные заказа, который отправляется на сервер
+- _formErrors — данные ошибок валидации
+
+Методы:
+- setCatalog — установить данные в каталог
+- setPreview — установить данные в превью
+- setProductBasket — установить данные в корзину
+- addOrder — добавить товар в заказ
+- deleteOrder — удалить товар из заказа
+- setTotal — установить сумму товаров в корзине
+- getTotal — получить сумму товаров в корзине
+- setPayment - установить способ оплаты
+- setOrderField — установить поле заказа
+- setContactsField — установить поле контактов
+- deleteProductBasket — удалить данные товара из корзины
+- validateOrder — провести валидацию данных заказа
+- validateContacts — провести валидацию данных контактов
+
+#### Класс SaveProduct
 Класс отвечает за хранение, проверку и отправку данных заполненных пользователем\
-В полях класса хранятся следующие данные:
+Поля класса:
+- payment: string - способ оплаты
+- address: string - адрес пользователя
 - phone: string - телефон пользователя
 - email: string - email пользователя
-- address: string - адрес пользователя
 
 Методы:
+- setPayment(): void - меняет способ оплаты
+- addAddress(): void - добавляет адрес доставки пользователя
 - addPhone(): void - добавляет номер телефона пользователя
 - addEmail(): void - добавляет email пользователя
-- addAddress(): void - добавляет адрес доставки пользователя
 - checkValidation(data: Record<typeof TOrderRequest, string>): boolean - проверяет данные пользователя на валидность 
 
-### Слой отображения
+### Слой View (Компоненты отображения)
 Все классы отвечают за отображение внутри контейнера (DOM-элемент) передаваемых в них данных.
 
 #### Класс Page
 Отображает главную страницу.
-- constructor(container: HTMLElement, events: IEvents) - принимает DOM-элемент на станице и брокер событий.
-В полях класса хранятся следующие данные:
+constructor(container: HTMLElement, events: IEvents) - принимает DOM-элемент на станице и брокер событий.\
+Поля класса:
+- _wrapper: string - элемент отвечающий за оформление на странице.
 - _catalog: string - элемент отвечающий за перечень данных товара.
 - _counter: number - элемент отвечающий за сумму выбранного товара.
 - _basket: string - элемент отвечающий за наполнение корзины товаром.
 
 #### Класс Product
-Отображает карточку товара. 
-- constructor(container: HTMLElement) - принимает DOM-элемент карточки.\
-В полях класса хранятся следующие данные:
-- _id: string - содержит индивидуальный номер каждой карточки
-- _description: string - содержит описание товара
-- _image: string - содержит картинку товара
-- _title: string - содержит название(заголовок) карточки
-- _category: string - содержит категорию товара
-- _price: number - содержит цену товара 
+Отображает данные карточки товара. 
+constructor(container: HTMLElement) - принимает DOM-элемент карточки.\
+Поля класса:
+- _category: string - элемент категории карточки
+- _title: string - элемент заголовка карточки
+- _image: string - элемент картинки карточки
+- _price: number - элемент цены карточки
 
-Методы:
-- setData(cardData: IProduct, id: string): void - заполняет атрибуты элементов карточки данными
-- setDescription(cardData: IProduct, description: string): void - заполняет данные описание товара
-- setImage(cardData: IProduct, image: string): void - заполняет данные картинку товара
-- setTitle(cardData: IProduct, title: string): void - заполняет данные название(заголовок) карточки
-- setCategory(cardData: IProduct, category: string): void - заполняет данные категорию товара
-- setPrice(cardData: IProduct, price: number): void - заполняет данные цену товара
+Сеттеры:
+- id - принимает и задает id карточки
+- category - меняет содержимое контейнера с категорией
+- title - меняет название заголовка
+- image - меняет изображение и альтернативный текст в карточке
+- price - меняет содержимое контейнера с ценой
 
-#### Класс ProductBasket
-Отображает корзину.
-- constructor(events: IEvents) - в конструктор класса передается DOM. Принимает брокер событий.\
-В полях класса хранятся следующие данные:
-- _id: string - содержит индивидуальный номер каждой карточки
-- _title: string - содержит название (заголовок) карточки
-- _price: number - содержит цену товара
+#### Класс ProductPreview
+Отображает данные карточки товара при выборе.
+constructor(container: HTMLElement) - принимает DOM-элемент карточки.\
+Поля класса:
+- _description - элемент описания карточки
+- _button - элемент кнопки карточки
 
-Методы:
-- setData(cardData: IProduct, id: string): void - заполняет атрибуты элементов карточки данными
-- setTitle(cardData: IProduct, title: string): void - заполняет данные название(заголовок) карточки
-- setPrice(cardData: IProduct, price: number): void - заполняет данные цену товара
+Сеттеры:
+- description - меняет содержимое описания товара
+- button - меняет текст на кнопке для оформления заказа
+
+#### Класс Basket
+Отображает данные карточки товара в корзине.
+constructor(events: IEvents) - принимает брокер событий.\
+Поля класса:
+- _list: string — элемент выбранного товара
+- _sum: number — элемент цены товара
+- _button: string - элемент кнопки оформления заказа
+
+Сеттеры:
+- items - меняет содержимое товаров в корзине 
+- sum - меняет значение суммы товаров
 
 #### Класс Modal
 Отображает модальное окно. 
-- constructor(selector: string, events: IEvents) - принимает контейнер с формой и брокер событий.\
-В полях класса хранятся следующие данные:
+constructor(selector: string, events: IEvents) - принимает контейнер с формой и брокер событий.\
+Поля класса:
 - _modal: HTMLElement - элемент модального окна
 - _events: IEvents - брокер событий
 
@@ -212,8 +253,8 @@ export type TOrderSecondForm = Pick<IOrderRequest, 'email' | 'phone'>;
 
 #### Класс OrderFirstForm
 Отображает и реализует форму оплаты и контакта.
-- constructor(container: HTMLElement, events: IEvents) - принимает контейнер с формой и брокер событий.\
-В полях класса хранятся следующие данные:
+constructor(container: HTMLElement, events: IEvents) - принимает контейнер с формой и брокер событий.\
+Поля класса:
 - _payFormCash: string - кнопка для выбора оплаты при получении 
 - _payFormCard: string - кнопка для выбора оплаты картой
 - _address: string - поле для заполнения адреса 
@@ -223,8 +264,8 @@ export type TOrderSecondForm = Pick<IOrderRequest, 'email' | 'phone'>;
 
 #### Класс OrderSecondForm
 Отображает и реализует форму контактов.
-- constructor(container: HTMLElement, events: IEvents) - принимает контейнер с формой и брокер событий.\
-В полях класса хранятся следующие данные:
+constructor(container: HTMLElement, events: IEvents) - принимает контейнер с формой и брокер событий.\
+Поля класса:
 - _email: string - поле для заполнения электронной почты       
 - _phone: string - поле для заполнения телефона  
 
@@ -232,18 +273,11 @@ export type TOrderSecondForm = Pick<IOrderRequest, 'email' | 'phone'>;
 - addEmail(email: string) - добавляет значение поля электронной почты
 - addPhone(phone: string) - добавляет значение поля телефона
 
-#### Класс checkForm:
-Отображает корректную реализация заполненных инпутов.
-
-Методы:
-- showInputError - показывает текст ошибки
-- hideInputError - скрывает  текст ошибки
-
 #### Класс Success
 Отображает успешное оформление заказа. 
-- constructor(container: HTMLElement, events: IEvents) - принимает контейнер с формой и брокер событий.\
-В полях класса хранятся следующие данные:
-- _price: number - содержит цену товара
+constructor(container: HTMLElement, events: IEvents) - принимает контейнер с формой и брокер событий.\
+Поля класса:
+- _price: number - элемент суммы товара
 
 ### Слой коммуникаций
 #### Класс AppApi
