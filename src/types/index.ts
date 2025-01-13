@@ -1,65 +1,33 @@
-// Интерфейс запроса данных
-export interface IDataProduct {
-	catalog: IProduct[];
-	preview: string;
-	basket: IProductBasket[];
-	order: IOrderRequest;
-	total: string | number;
-	loading: boolean;
-  }
 
-// Интерфейс карточки 
-export interface IProduct {  
-	id: string;           
-	description: string;  
-	image: string;        
-	title: string;        
-	category: string;     
-	price: number | null;        
+// Интерфейс карточки полученной с сервера
+export interface IProduct {
+  id: string;
+  description: string;
+  image: string;
+  title: string;
+  category: string;
+  price: number | null;
 }
 
-// Интерфейс корзины
-export interface IProductBasket { 
-    items: string[];
-	total: number;  
+// Интерфейс выбранного товара по клику
+export interface IChoiseProduct {
+  onClick: (event: MouseEvent) => void;     
 }
 
-// Интерфейс формы отправки 
-export interface IOrderRequest { 
-    payment: PayForm;
-	email: string;
-	phone: string;
-	address: string;
-	items: string[];
-	total: number;      
+// интерфейс формы отправки
+export interface IOrderList {
+payment: string;
+address: string;
+phone: string;
+email: string;
 }
 
 // Интерфейс завершенного результата
 export interface IOrderResult {
-	id: string;
-	total: number;
+  id: string;
+  total: number;
 }
 
-export type PayForm = 'cash' | 'card';
-
-export type TOrderRequest = Omit<IOrderRequest, 'items' | 'total'>
-
-export type TOrderFirstForm = Pick<IOrderRequest, 'payment' | 'address'>;
-
-export type TOrderSecondForm = Pick<IOrderRequest, 'email' | 'phone'>;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Проверка формы на ошибки
+export type CheckErrors = Partial<Record<keyof IOrderList, string>>;
 
