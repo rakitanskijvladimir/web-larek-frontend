@@ -17,8 +17,8 @@ import { Basket } from './components/View/basket';
 import { BasketItem } from './components/View/basketItem';
 import { OrderFirstForm } from './components/View/firstForm';
 import { OrderSecondForm } from './components/View/secondForm';
-import { Modal } from './components/View/modal';
-import { Success } from './components/View/success';
+import { Modal } from './components/View/modals';
+import { Success } from './components/View/successOrder';
 import { Page } from './components/View/page';
 
 
