@@ -1,6 +1,5 @@
 import { ApiListResponse, Api } from '../base/api'
 import { IOrderList, IOrderResult, IProduct } from '../../types';
-import { IEvents } from "../base/events";
 
 // получение данных о товарах с сервера
 export interface IApiGetCards {
@@ -30,37 +29,7 @@ export class ApiGetCards extends Api {
   }
 
   // получаю ответ от сервера заказу
-  postOrderList(order: IOrderList): Promise<IOrderResult> {
-    return this.post(`/order`, order).then((data: IOrderResult) => data);
-  }
-}
-
-// данные полученные при выборе конкретного товара
-export interface IApiChoiseCards {
-  choiseCards: IProduct[];
-  checkСard: IProduct;
-  setPreview(item: IProduct): void;
-}
-
-export class ApiChoiseCards implements IApiChoiseCards {
-  protected _choiseCards: IProduct[];
-  checkСard: IProduct;
-
-  constructor(protected events: IEvents) {
-    this._choiseCards = []
-  }
-
-  set choiseCards(data: IProduct[]) {
-    this._choiseCards = data;
-    this.events.emit('getCards:receive');
-  }
-
-  get choiseCards() {
-    return this._choiseCards;
-  }
-
-  setPreview(item: IProduct) {
-    this.checkСard = item;
-    this.events.emit('modalCard:open', item)
+  postOrderList(order: IOrderList, sum: number, products: string[]): Promise<IOrderResult> {
+    return this.post(`/order`, {...order, items: products, total: sum }).then((data: IOrderResult) => data);
   }
 }

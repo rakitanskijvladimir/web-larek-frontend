@@ -118,113 +118,163 @@ constructor() - инициализирует брокер событий\
 
 ## Слой Model (Компоненты данных)
 
-### Класс getData
-Наследуется от класса Api, отвечает за отправление, получение и хранение данных с сервера.
+### Класс ApiGetCards
+Наследуется от класса Api, отвечает за получение данных с сервера.\
+constructor(cdn: string, baseUrl: string, options?: RequestInit)
+Поля:
+- cdn: string: URL для доступа к контенту (например, изображениям).
+- items: IProduct[]: Массив продуктов.
 
-Метод:
-- getProduct - получет массив товара с сервера.
-- postOrderList - получет ответ от сервера по выбранному товару.   
-- setPreview - получает данные карточки которую кликнул пользователь.
+Методы:
+- getProduct(): Promise<IProduct[]>: Получает массив продуктов с сервера.
+- postOrderList(order: IOrderList, sum: number, products: string[]): - - 
+- Promise<IOrderResult>: Отправляет заказ на сервер и возвращает ответ.
+
+### Класс CardsList
+Класс отвечает за управление списком карточек продуктов.\
+constructor(protected events: IEvents)
+Поля:
+- _choiseCards: IProduct[]: Список выбранных карточек.
+- checkСard: IProduct: Выбранная карточка.
+
+Методы:
+- choiseCards: IProduct[]: Геттер и сеттер для списка карточек.
+- setPreview(item: IProduct): void: Устанавливает предварительный просмотр выбранного продукта и вызывает событие.
 
 ### Класс basketModel 
-Класс отвечает за хранение и работу с данными в корзине выбранных пользователем.
-constructor(events: IEvents) -  отвечает за работу с товарами которые пользователь добавляет в корзину
+Класс отвечает за хранение и работу с данными в корзине выбранных пользователем.\
+constructor(protected events: IEvents)
+Поля:
+- _basketProducts: IProduct[]: Массив товаров в корзине.
 
 Методы:
-- addProductToBasket - добавляет товар в корзину.
-- deleteProductToBasket - удаляет товар из корзины.
-- getCounter - суммирует количество товаров в корзине.
-- getCountSumProducts - считает и возвращает сумму синапсов всех товаров в корзине.
+- addProductToBasket(data: IProduct): void: Добавляет товар в корзину.
+- deleteProductToBasket(item: IProduct): void: Удаляет товар из корзины.
+- getCounter(): number: Возвращает количество товаров в корзине.
+- getCountSumProducts(): number: Возвращает общую сумму товаров в корзине.
+- clearBasketProducts(): void: Очищает корзину.
+- isProductInBasket(): boolean: Проверят наличие товара в корзине.
 
 ### Класс orderModel
-Класс отвечает за хранение данных заполненных пользователем в формах.
-constructor(container: HTMLFormElement, events: IEvents) -  принимает контейнер с формой для отправки на сервер
+Класс отвечает за управление данными формы заказа.\
+constructor(protected events: IEvents)
+Поля:
+- payment: string: Способ оплаты.
+- email: string: Email.
+- phone: string: Телефон.
+- address: string: Адрес.
+- formErrors: CheckErrors: Ошибки валидации формы.
 
 Методы:
-- setPayment - устанавливает/принимает форму оплаты.
-- setAddress - устанавливает/принимает адрес пользователя.
-- setEmail - устанавливает/принимает электронную почту.
-- setPhone - устанавливает/принимает номер телефона.
-- validateAllOrder - проверяет корректность заполнения всех полей.
-- getOrderProduct - возвращает данные пользователя с выбранными товарами.
+- setInputs(field: string, value: string): void: Устанавливает значения полей формы и проверяет их на валидность.
+- validateCheck(): boolean: Проверяет, заполнены ли все необходимые поля.
+- getOrderProduct(): object: Возвращает данные заказа.
 
 ## Слой View (Компоненты отображения)
 
-### Класс Product
-Отображает данные карточки товара полученные с сервера в целом и при выборе каждой карточки товара 
-constructor(container: HTMLElement) - принимает DOM-элемент карточки.\
-Поля класса:
-- _cardElement: string - элемент карточки
-- _cardCategory: string - элемент категории карточки
-- _cardTitle: string - элемент заголовка карточки
-- _cardImage: string - элемент картинки карточки
-- _cardPrice: numder - элемент цены карточки
-- _colors: string - элемент цены карточки
-- _description: string - элемент описания карточки
-- _button: string - элемент кнопки карточки
+### Page
+Класс отвечает за представление страницы приложения.\
+constructor(protected events: IEvents)
+Поля:
+- _catalog: HTMLElement: Элемент каталога продуктов.
+- _wrapper: HTMLElement: Обёртка для страницы.
+- _basket: HTMLElement: Элемент корзины.
+- _basketCounter: HTMLElement: Элемент для отображения количества товаров в корзине.
 
 Методы:
-- setText - принимает два значения, первое HTMLElement, второе значение задаёт текстовое содержимое HTMLElement.
-- cardElement - принимает строчное значение и создаёт новый className для HTMLElement.
-- productPrice - цену продукта в числовом значении и возвращает в строчном.
-- notSale - принимает данные о продукте, проверяет наличие цены продукта, при отсутствии цены ограничивает покупку.
+- set productItem(item: HTMLElement): void: Добавляет новый товар в каталог.
+- set locked(value: boolean): void: Блокирует (или разблокирует) возможность взаимодействия со страницей.
+- productListBasket(value: number): void: Обновляет отображение количества товаров в корзине.
 
-### Класс Basket
-Отображает данные карточки товара в корзине.
-constructor(events: IEvents) - принимает брокер событий.\
-Поля класса:
-- basket: string — элемент корзины
-- title: string — элемент заголовка товара
-- basketList: string - элемент перечня товара
-- button: string — элемент кнопки\
+### ProductView
+Класс для отображения карточек продуктов.\
+constructor(template: HTMLTemplateElement, protected events: IEvents, actions?: IChoiseProduct)
+Поля:
+- _cardElement: HTMLElement: Элемент карточки продукта.
+- _cardCategory: HTMLElement: Элемент с категорией продукта.
+- _cardTitle: HTMLElement: Элемент с названием продукта.
+- _cardImage: HTMLImageElement: Элемент с изображением продукта.
+- _cardPrice: HTMLElement: Элемент с ценой продукта.
+- _colors: Объект для хранения стилей категорий.
 
-При незаполненной корзине
-- basketPrice: number — элемент цены товара 
-- basketButton: string - элемент кнопки оформления заказа 
-- basketCounter: string — элемент выбранного товара\ 
+Методы :
+- render(data: IProduct): HTMLElement: Отображает данные продукта и возвращает элемент карточки.
 
-При заполненной корзине
-- basketItem: string — элемент перечня товара
-- index: string - элемент порядкового номера заказа
-- price: number - элемент цены заказа
-- buttonDelete: string - элемент кнопки удаления заказа
+### ProductPreview (наследник ProductView)
+Класс для отображения превью карточки продукта с дополнительными данными.\
+constructor(template: HTMLTemplateElement, events: IEvents, actions?: IChoiseProduct)
+Поля:
+- description: HTMLElement: Элемент с описанием продукта.
+- button: HTMLElement: Кнопка для добавления продукта в корзину.
 
-Методы:
-- productListBasket - сохраняет и устанавливает общее количество товара в корзине.
-- productSumBasket - сохраняет и устанавливает сумму синапсов всех товаров в корзине.
-- productPrice - цену продукта в числовом значении и возвращает в строчном.
+Методы :
+- render(data: IProduct): HTMLElement: Отображает данные продукта, включая подробное описание и кнопку.
 
-### Класс FillForms
-Отображает и реализует форму оплаты и полей для заполнения контактов.
-constructor(container: HTMLElement, events: IEvents) - принимает контейнер с формой и брокер событий.\
-Поля класса:
-- firstForm: string - кнопка для выбора оплаты при получении 
-- buttonAll: string - кнопка для выбора оплаты картой
-- paymentSelection: string - поле для заполнения адреса 
-- checkErrors: string - поле для заполнения электронной почты       
-- secondForm: string - поле для заполнения телефона 
-- inputAll: string - поле для заполнения телефона 
-- buttonSubmit: string - поле для заполнения телефона 
+### Basket
+Класс для управления корзиной покупок.\
+constructor(template: HTMLTemplateElement, protected events: IEvents)
+Поля:
+- basket: HTMLElement: Элемент корзины.
+- title: HTMLElement: Заголовок корзины.
+- basketList: HTMLElement: Список товаров в корзине.
+- button: HTMLButtonElement: Кнопка оформления заказа.
+- basketPrice: HTMLElement: Элемент отображения общей суммы.
 
 Методы:
-- paymentSelection - устанавливаем обводку вокруг выбранного метода оплаты.
+- set items(items: HTMLElement[]): void: Обновляет список товаров в корзине.
+- productSumBasket(sumAll: number): void: Устанавливает общую сумму в корзине.
+- render(): HTMLElement: Возвращает элемент корзины.
+
+### BasketItem
+Класс для представления одного товара в корзине.\
+constructor(template: HTMLTemplateElement, protected events: IEvents, actions?: IChoiseProduct)
+Поля:
+- basketItem: HTMLElement: Элемент одного товара в корзине.
+- index: HTMLElement: Индекс товара.
+- title: HTMLElement: Название товара.
+- price: HTMLElement: Цена товара.
+- buttonDelete: HTMLButtonElement: Кнопка для удаления товара из корзины.
+
+Методы:
+- render(data: IProduct, item: number): HTMLElement: Отображает данные товара и возвращает элемент товара в корзине.
+
+### OrderFirstForm и OrderSecondForm
+Классы для управления формами заказа, одна для выбора платежа и адреса, другая для ввода контактной информации.\
+constructor(template: HTMLTemplateElement, protected events: IEvents)
+Поля:
+- firstForm / secondForm: HTMLFormElement: Элемент формы.
+- buttonAll: HTMLButtonElement[]: Массив кнопок.
+- buttonSubmit: HTMLButtonElement: Кнопка отправки.
+- checkErrors: HTMLElement: Элемент для отображения ошибок.
+
+Методы :
+- render(): HTMLElement: Возвращает элемент формы.
 
 ### Класс Modal
-Отображает модальное окно. 
-constructor(selector: string, events: IEvents) - принимает контейнер с формой и брокер событий.\
-Поля класса:
-- _modal: HTMLElement - элемент модального окна
-- _events: IEvents - брокер событий
+Класс для управления модальными окнами.\
+constructor(modalContainer: HTMLElement, protected events: IEvents)
+Поля:
+- modalContainer: HTMLElement: Элемент контейнера для модального окна.
+- closeButton: HTMLButtonElement: Кнопка для закрытия модального окна.
+- _content: HTMLElement: Контент модального окна.
 
 Методы:
-- openModal.
-- closeModal.
+- set content(value: HTMLElement): void: Устанавливает контент для отображения в модальном окне.
+- open(): void: Открывает модальное окно.
+- close(): void: Закрывает модальное окно.
+- render(): HTMLElement: Возвращает элемент модального окна.
 
 ### Класс Success
-Отображает успешное оформление заказа. 
-constructor(container: HTMLElement, events: IEvents) - принимает контейнер с формой и брокер событий.\
-Поля класса:
-- _price: number - элемент суммы товара
+Класс отображает успешное оформление заказа.\
+constructor(template: HTMLTemplateElement, protected events: IEvents)
+
+Поля:
+- success: HTMLElement: Элемент успешного оформления.
+- description: HTMLElement: Элемент для описания успешного оформления.
+- button: HTMLButtonElement: Кнопка закрытия окна успеха.
+
+Методы:
+- render(total: number): HTMLElement: Отображает сообщение об успешном оформлении заказа.
 
 ## Слой коммуникаций
 ### Класс AppApi
@@ -246,7 +296,7 @@ constructor(container: HTMLElement, events: IEvents) - принимает кон
 `order:open` - открытие модального окна для заполнения адреса и способа оплаты\
 `order:paymentCheck` - проверка на валидность кнопки выбора оплаты\
 `order:changeAddress` - изменение данных адреса в форме отправки заказа\
-`checkErrors:address` - валидация поля адреса\
+`checkErrors:filds` - валидация поля адреса\
 `contacts:open` - открытие модального окна для заполнения почты и телефона\
 `contacts:open` - открытие модального окна для заполнения почты и телефона\
 `contacts:changeInput` - отслеживание изменений\
@@ -254,3 +304,4 @@ constructor(container: HTMLElement, events: IEvents) - принимает кон
 `success:close` - закрытие модального окна при успешном завершении\
 `modal:open` - блокировка прокрутки\
 `modal:close` - разблокировка прокрутки\    
+
